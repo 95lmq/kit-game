@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guess the Kit!</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Guess the Kit!</h1>
+    <img id="kitImage" src="" alt="Kit image">
+    
+    <div class="buttons">
+      <button onclick="revealAnswer()">Reveal</button>
+      <button onclick="nextImage()">Next</button>
+      <button id="newRoundBtn" onclick="newRound()" style="display:none;">New Round</button>
+    </div>
+    
+    <p id="result"></p>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

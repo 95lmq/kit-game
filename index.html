@@ -7,19 +7,33 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Guess the Kit!</h1>
-    <img id="kitImage" src="" alt="Kit image">
-    
-    <div class="buttons">
-      <button onclick="revealAnswer()">Reveal</button>
-      <button onclick="nextImage()">Next</button>
-      <button id="newRoundBtn" onclick="newRound()" style="display:none;">New Round</button>
-      <button id="resetZoomBtn" onclick="resetZoom()" title="Reset zoom">Reset</button>
-    </div>
-    
-    <p id="result"></p>
+  <div class="topbar">
+    <div class="title">Guess the Kit!</div>
   </div>
+
+  <main class="layout">
+    <section class="stage">
+      <div class="stage-inner">
+        <div class="stage-body">
+          <div id="playArea" class="playArea">
+            <div class="media">
+              <img id="kitImage" src="" alt="Kit image">
+              <div id="timer" class="timer" aria-hidden="true">20</div>
+            </div>
+
+            <div id="result" class="result"></div>
+
+            <div class="controls">
+              <button id="revealBtn" class="btn">Reveal</button>
+              <button id="nextBtn" class="btn">Next</button>
+              <button id="newRoundBtn" class="btn secondary" style="display:none;">New Round</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
   <script src="script.js"></script>
 </body>
 </html>

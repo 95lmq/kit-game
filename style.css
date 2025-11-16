@@ -15,30 +15,31 @@ body {
   padding: 20px;
 }
 
-/* Zoom viewport */
+/* Zoom container: fixed viewport for the image */
 .zoom-container {
   position: relative;
-  overflow: hidden;   /* keeps zoomed image clipped inside */
-  max-height: 70vh;
+  overflow: hidden;
+  width: 100%;
+  max-height: 70vh;   /* keeps space for buttons/text */
   margin: 20px auto;
   border: 2px solid #333;
   border-radius: 8px;
 }
 
-/* Image inside zoom container */
+/* Responsive image inside zoom container */
 #kitImage {
-  width: 100%;
+  max-width: 100%;
+  max-height: 70vh;
+  width: auto;
   height: auto;
   display: block;
-  object-fit: contain;
+  margin: 0 auto;
+  /*object-fit: contain;*/   /* ensures full image is visible */
   cursor: grab;
-
-  /* Mobile fixes */
   -webkit-user-select: none;
   -webkit-touch-callout: none;
   user-select: none;
-
-  /* Panzoom will override transform dynamically */
+  touch-action: none;
   transition: transform 0.2s ease;
 }
 
@@ -67,7 +68,7 @@ button:hover {
 #result {
   margin-top: 20px;
   font-size: 1.1rem;
-  white-space: pre-line;
+  white-space: pre-line; /* allows line breaks for "Learn more" link */
 }
 
 /* Responsive tweaks for smaller screens */

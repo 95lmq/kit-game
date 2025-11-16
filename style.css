@@ -15,18 +15,32 @@ body {
   padding: 20px;
 }
 
-/* Responsive image */
-img {
-  width: 100%;             /* fill the container width */
-  height: auto;            /* keep aspect ratio */
-  max-height: 70vh;        /* limit vertical size to 70% of viewport height */
-  display: block;
+/* Zoom viewport */
+.zoom-container {
+  position: relative;
+  overflow: hidden;   /* keeps zoomed image clipped inside */
+  max-height: 70vh;
   margin: 20px auto;
   border: 2px solid #333;
   border-radius: 8px;
-  object-fit: contain;     /* ensures the whole image fits within the box */
 }
 
+/* Image inside zoom container */
+#kitImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  cursor: grab;
+
+  /* Mobile fixes */
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+
+  /* Panzoom will override transform dynamically */
+  transition: transform 0.2s ease;
+}
 
 /* Buttons styling */
 .buttons {
@@ -53,7 +67,7 @@ button:hover {
 #result {
   margin-top: 20px;
   font-size: 1.1rem;
-  white-space: pre-line; /* allows line breaks for "Learn more" link */
+  white-space: pre-line;
 }
 
 /* Responsive tweaks for smaller screens */
@@ -65,27 +79,4 @@ button:hover {
     font-size: 0.9rem;
     padding: 10px 16px;
   }
-}
-
-#kitImage {
-  width: 100%;
-  height: auto;
-  max-height: 70vh;   /* keep space for text/buttons */
-  display: block;
-  margin: 20px auto;
-  border: 2px solid #333;
-  border-radius: 8px;
-  object-fit: contain;
-  cursor: zoom-in;
-  transition: transform 0.1s ease;
-
-  -webkit-user-select: none;   /* prevent text/image selection */
-  -webkit-touch-callout: none; /* disable iOS long‑press menu */
-  user-select: none;
-}
-
-#kitImage.zooming {
-  cursor: zoom-out;
-  /*transform-origin: center center; /* will be updated dynamically */
-  transform: scale(4.5);             /* massive zoom */
 }

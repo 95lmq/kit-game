@@ -1,3 +1,6 @@
+// --------------------
+// Quiz/game logic
+// --------------------
 let matchedKits = [];
 let kitMaster = [];
 let roundKits = [];
@@ -85,54 +88,23 @@ function newRound() {
   startRound();
 }
 
+// --------------------
+// Panzoom integration
+// --------------------
+const zoomContainer = document.querySelector(".zoom-container");
 
+// Initialize Panzoom on the container
+const panzoom = Panzoom(zoomContainer, {
+  maxScale: 5,       // maximum zoom level
+  minScale: 1,       // normal size
+  step: 0.3,         // zoom step for wheel/pinch
+  contain: 'outside' // allow panning beyond edges
+});
 
-// Zoom and pan features
-const img = document.getElementById("kitImage");
-let isZooming = false;
+// Enable mouse wheel zoom
+zoomContainer.parentElement.addEventListener('wheel', panzoom.zoomWithWheel);
 
-function startZoom(e) {
-  isZooming = true;
-  img.classList.add("zooming");
-  updateZoom(e);
-}
-
-function endZoom() {
-  if (!isZooming) return;
-  isZooming = false;
-  img.classList.remove("zooming");
-  img.style.transform = ""; // reset transform
-}
-
-function updateZoom(e) {
-  if (!isZooming) return;
-
-  const rect = img.getBoundingClientRect();
-  let x, y;
-  if (e.touches && e.touches.length > 0) {
-    x = e.touches[0].clientX - rect.left;
-    y = e.touches[0].clientY - rect.top;
-  } else {
-    x = e.clientX - rect.left;
-    y = e.clientY - rect.top;
-  }
-
-  const offsetX = (x - rect.width / 2) / rect.width * 100;
-  const offsetY = (y - rect.height / 2) / rect.height * 100;
-
-  img.style.transform = `scale(4.5) translate(${-offsetX}%, ${-offsetY}%)`;
-}
-
-// Mouse events
-img.addEventListener("mousedown", startZoom);
-document.addEventListener("mousemove", updateZoom);
-document.addEventListener("mouseup", endZoom);
-
-// Touch events
-img.addEventListener("touchstart", startZoom);
-document.addEventListener("touchmove", updateZoom);
-document.addEventListener("touchend", endZoom);
-
-// Prevent browser drag behavior
-img.addEventListener("dragstart", e => e.preventDefault());
-
+// Optional: reset zoom when starting a new round
+document.getElementById("newRoundBtn").addEventListener("click", () => {
+  panzoom.reset();
+});

@@ -6,21 +6,20 @@
   <title>Guess the Kit!</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body>  
+<body>
   <div class="container">
     <h1>Guess the Kit!</h1>
-    <div class="zoom-container">
-      <img id="kitImage" src="" alt="Kit image">
-    </div>
+    <img id="kitImage" src="" alt="Kit image">
+    
     <div class="buttons">
       <button onclick="revealAnswer()">Reveal</button>
       <button onclick="nextImage()">Next</button>
       <button id="newRoundBtn" onclick="newRound()" style="display:none;">New Round</button>
+      <button id="resetZoomBtn" onclick="resetZoom()" title="Reset zoom">Reset</button>
     </div>
     
     <p id="result"></p>
   </div>
-  <script src="panzoom.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

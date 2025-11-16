@@ -15,33 +15,18 @@ body {
   padding: 20px;
 }
 
-/* Zoom container: fixed viewport for the image */
-.zoom-container {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  max-height: 70vh;   /* keeps space for buttons/text */
+/* Responsive image */
+img {
+  width: 100%;             /* fill the container width */
+  height: auto;            /* keep aspect ratio */
+  max-height: 70vh;        /* limit vertical size to 70% of viewport height */
+  display: block;
   margin: 20px auto;
   border: 2px solid #333;
   border-radius: 8px;
+  object-fit: contain;     /* ensures the whole image fits within the box */
 }
 
-/* Responsive image inside zoom container */
-#kitImage {
-  max-width: 100%;
-  max-height: 70vh;
-  width: auto;
-  height: auto;
-  display: block;
-  margin: 0 auto;
-  /*object-fit: contain;*/   /* ensures full image is visible */
-  cursor: grab;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
-  user-select: none;
-  touch-action: none;
-  transition: transform 0.2s ease;
-}
 
 /* Buttons styling */
 .buttons {
@@ -80,4 +65,34 @@ button:hover {
     font-size: 0.9rem;
     padding: 10px 16px;
   }
+}
+
+#kitImage {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;   /* keep space for text/buttons */
+  display: block;
+  margin: 20px auto;
+  border: 2px solid #333;
+  border-radius: 8px;
+  object-fit: contain;
+  cursor: zoom-in;
+  transition: transform 0.1s ease;
+  touch-action: none; /* let JS handle touch gestures on the image */
+}
+
+#kitImage.zooming {
+  cursor: zoom-out;
+  transform-origin: center center; /* will be updated dynamically by JS */
+}
+
+/* small reset button styling */
+#resetZoomBtn {
+  background-color: #444;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
+
+#resetZoomBtn:hover {
+  background-color: #222;
 }

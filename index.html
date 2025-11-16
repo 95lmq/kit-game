@@ -35,5 +35,19 @@
   </main>
 
   <script src="script.js"></script>
+  <!-- Diagnostics: report resource loading status -->
+  <script>
+    (function(){
+      const diag = document.createElement('div');
+      diag.style.position='fixed'; diag.style.left='8px'; diag.style.bottom='8px'; diag.style.padding='6px 10px'; diag.style.background='rgba(0,0,0,0.6)'; diag.style.color='#fff'; diag.style.fontSize='12px'; diag.style.borderRadius='6px'; diag.style.zIndex=9999; diag.style.pointerEvents='none';
+      diag.textContent = 'Resources: CSS and JS status...';
+      document.body.appendChild(diag);
+      setTimeout(()=>{
+        const cssLoaded = !!getComputedStyle(document.documentElement).getPropertyValue('--bg');
+        const jsLoaded = !!window.__app_initialized;
+        diag.textContent = `CSS:${cssLoaded? 'ok':'MISSING'} JS:${jsLoaded? 'ok':'MISSING'}`;
+      }, 250);
+    })();
+  </script>
 </body>
 </html>

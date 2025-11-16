@@ -234,3 +234,6 @@ function setupImageInteractions(){
   document.addEventListener("mouseup", () => { isMouseDown = false; if (scale <= 1.01) { scale = 1; panX = 0; panY = 0; img.classList.remove("zooming"); setTransform(); } });
   img.addEventListener("dragstart", e => e.preventDefault());
 }
+
+  // Signal that the main script executed (helps remote debugging)
+  window.__app_initialized = true;

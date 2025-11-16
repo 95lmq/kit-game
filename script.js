@@ -94,12 +94,14 @@ let isZooming = false;
 function startZoom(e) {
   isZooming = true;
   img.classList.add("zooming");
-  updateZoom(e); // zoom immediately at the press point
+  updateZoom(e);
 }
 
 function endZoom() {
+  if (!isZooming) return;
   isZooming = false;
   img.classList.remove("zooming");
+  img.style.transform = ""; // reset transform
 }
 
 function updateZoom(e) {
@@ -118,18 +120,19 @@ function updateZoom(e) {
   const offsetX = (x - rect.width / 2) / rect.width * 100;
   const offsetY = (y - rect.height / 2) / rect.height * 100;
 
-  /*img.style.transformOrigin = `${xPercent}% ${yPercent}%`; */
   img.style.transform = `scale(4.5) translate(${-offsetX}%, ${-offsetY}%)`;
 }
 
 // Mouse events
 img.addEventListener("mousedown", startZoom);
-img.addEventListener("mousemove", updateZoom);   // keep updating while held
+document.addEventListener("mousemove", updateZoom);
 document.addEventListener("mouseup", endZoom);
 
 // Touch events
 img.addEventListener("touchstart", startZoom);
-img.addEventListener("touchmove", updateZoom);   // keep updating while held
+document.addEventListener("touchmove", updateZoom);
 document.addEventListener("touchend", endZoom);
+
 // Prevent browser drag behavior
 img.addEventListener("dragstart", e => e.preventDefault());
+

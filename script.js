@@ -115,10 +115,11 @@ function updateZoom(e) {
     y = e.clientY - rect.top;
   }
 
-  const xPercent = (x / rect.width) * 100;
-  const yPercent = (y / rect.height) * 100;
+  const offsetX = (x - rect.width / 2) / rect.width * 100;
+  const offsetY = (y - rect.height / 2) / rect.height * 100;
 
-  img.style.transformOrigin = `${xPercent}% ${yPercent}%`;
+  /*img.style.transformOrigin = `${xPercent}% ${yPercent}%`; */
+  img.style.transform = `scale(4.5) translate(${-offsetX}%, ${-offsetY}%)`;
 }
 
 // Mouse events

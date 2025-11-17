@@ -81,10 +81,16 @@ function loadImage() {
   const currentKit = roundKits[currentIndex];
   if (!currentKit) return;
   const imgEl = document.getElementById("kitImage");
-  imgEl.src = currentKit.url;
   document.getElementById("result").textContent = "";
   document.getElementById("newRoundBtn").style.display = "none";
-  startTimer(timePerImage);
+  
+  // Set up image load handler before setting src
+  imgEl.onload = () => {
+    if (typeof imgEl.resetZoom === 'function') imgEl.resetZoom();
+    startTimer(timePerImage);
+  };
+  
+  imgEl.src = currentKit.url;
 }
 
 function revealAnswer() {
@@ -99,12 +105,17 @@ function revealAnswer() {
     const answers = [systemEntry.Name_1, systemEntry.Name_2, systemEntry.Name_3, systemEntry.Name_4]
       .filter(name => name && name.trim() !== "");
 
-    let text = `Possible correct answers: ${answers.join(", ")}`;
+    let html = `<div>Possible correct answers:</div><div style="margin-top:8px;">`;
+    answers.forEach(answer => {
+      html += `<span class="result-answer-block">${answer}</span>`;
+    });
+    html += `</div>`;
+    
     if (systemEntry.Link && systemEntry.Link.trim() !== "") {
-      text += `\nLearn more: ${systemEntry.Link}`;
+      html += `<div style="margin-top:12px;">Learn more: <a href="${systemEntry.Link}" target="_blank" class="result-link">${systemEntry.Link}</a></div>`;
     }
 
-    document.getElementById("result").textContent = text;
+    document.getElementById("result").innerHTML = html;
   } else {
     document.getElementById("result").textContent = "No system info found.";
   }
@@ -158,7 +169,7 @@ function setupImageInteractions(){
 
   let scale = 1;
   const minScale = 1;
-  const maxScale = 3;
+  const maxScale = 5;
   let startScale = 1;
   let startDist = 0;
 
@@ -210,12 +221,12 @@ function setupImageInteractions(){
         setTransform(); e.preventDefault(); lastTouchTime = 0; return;
       }
       lastTouchTime = now;
-      isPanning = true; startPanX = t.clientX - panX; startPanY = t.clientY - panY;
+      isPanning = true; startPanX = t.clientX - panX * 1.3; startPanY = t.clientY - panY * 1.3;
     }
     if (isPinching && e.touches.length >= 2) {
       const dist = getDistance(e.touches); scale = clamp(startScale * (dist / startDist), minScale, maxScale); img.classList.add("zooming"); clampPan(); setTransform(); e.preventDefault();
     } else if (isPanning && e.touches.length === 1 && scale > 1) {
-      const t = e.touches[0]; panX = t.clientX - startPanX; panY = t.clientY - startPanY; clampPan(); setTransform(); e.preventDefault();
+      const t = e.touches[0]; panX = (t.clientX - startPanX) / 1.3; panY = (t.clientY - startPanY) / 1.3; clampPan(); setTransform(); e.preventDefault();
     }
   }, { passive: false });
 
@@ -225,12 +236,62 @@ function setupImageInteractions(){
   });
 
   img.addEventListener("wheel", e => {
-    e.preventDefault(); const delta = -e.deltaY; const zoomFactor = delta > 0 ? 1.12 : 0.88; scale = clamp(scale * zoomFactor, minScale, maxScale); if (scale <= 1.01) { scale = 1; panX = 0; panY = 0; img.classList.remove("zooming"); } else { panX = 0; panY = 0; img.classList.add("zooming"); } clampPan(); setTransform();
+    e.preventDefault();
+    const delta = -e.deltaY;
+    // even gentler zoom steps
+    const zoomFactor = delta > 0 ? 1.04 : 0.96;
+    
+    // get cursor position relative to image
+    const rect = img.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // calculate cursor position in image coordinates (before zoom)
+    const imgX = (mouseX - rect.width/2) / scale - panX / scale;
+    const imgY = (mouseY - rect.height/2) / scale - panY / scale;
+    
+    const prevScale = scale;
+    scale = clamp(scale * zoomFactor, minScale, maxScale);
+    
+    if (scale <= 1.01) {
+      // reset to default
+      scale = 1;
+      panX = 0; panY = 0;
+      img.classList.remove("zooming");
+      img.style.transformOrigin = '50% 50%';
+    } else {
+      img.classList.add("zooming");
+      // adjust pan to keep cursor over the same point
+      panX = mouseX - rect.width/2 - imgX * scale;
+      panY = mouseY - rect.height/2 - imgY * scale;
+      img.style.transformOrigin = '50% 50%';
+    }
+    
+    clampPan();
+    setTransform();
   }, { passive: false });
 
+  // double-click to zoom to cursor (desktop)
+  img.addEventListener('dblclick', e => {
+    e.preventDefault();
+    if (scale === 1) {
+      setOriginRelative(e.clientX, e.clientY);
+      scale = clamp(3, minScale, maxScale);
+      img.classList.add('zooming');
+    } else {
+      scale = 1; panX = 0; panY = 0; img.classList.remove('zooming'); img.style.transformOrigin = '50% 50%';
+    }
+    clampPan(); setTransform();
+  });
+
+  // expose a reset function so caller can reset zoom/pan when loading new images
+  img.resetZoom = function(){
+    scale = 1; panX = 0; panY = 0; img.classList.remove('zooming'); img.style.transformOrigin = '50% 50%'; setTransform();
+  };
+
   let isMouseDown = false;
-  img.addEventListener("mousedown", e => { if (scale > 1) { isMouseDown = true; startPanX = e.clientX - panX; startPanY = e.clientY - panY; e.preventDefault(); } });
-  document.addEventListener("mousemove", e => { if (!isMouseDown) return; panX = e.clientX - startPanX; panY = e.clientY - startPanY; clampPan(); setTransform(); });
+  img.addEventListener("mousedown", e => { if (scale > 1) { isMouseDown = true; startPanX = e.clientX - panX * 1.3; startPanY = e.clientY - panY * 1.3; e.preventDefault(); } });
+  document.addEventListener("mousemove", e => { if (!isMouseDown) return; panX = (e.clientX - startPanX) / 1.3; panY = (e.clientY - startPanY) / 1.3; clampPan(); setTransform(); });
   document.addEventListener("mouseup", () => { isMouseDown = false; if (scale <= 1.01) { scale = 1; panX = 0; panY = 0; img.classList.remove("zooming"); setTransform(); } });
   img.addEventListener("dragstart", e => e.preventDefault());
 }

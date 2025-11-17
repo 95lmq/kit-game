@@ -2,13 +2,13 @@
   --bg:#121217;
   --panel:#1b1b22;
   --accent:#ff3b30;
-  --accent-2:#7c5cff;
+  --accent-2:#00118e;
   --muted:#9aa0a6;
   --white:#ffffff;
 }
 
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;overflow-x:hidden}
 body{
   margin:0;
   font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
@@ -28,41 +28,36 @@ body{
 .topbar .title{font-size:1.25rem;font-weight:700}
 .topbar .room{color:var(--muted)}
 
-.layout{display:flex;gap:20px;padding:24px;max-width:1200px;margin:0 auto}
+.layout{display:flex;gap:24px;padding:32px;max-width:95vw;width:100%;margin:0 auto;box-sizing:border-box;max-height:95vh}
 .stage{flex:1}
 .panel{width:260px;background:var(--panel);border-radius:10px;padding:16px}
 .panel h3{margin:0 0 8px 0}
 .playerList{color:var(--muted);min-height:200px}
 
-.stage-inner{position:relative;padding:8px;border-radius:12px;min-height:70vh;display:flex;align-items:center;justify-content:center}
+.stage-inner{position:relative;padding:20px;border-radius:12px;min-height:60vh;max-height:85vh;display:flex;align-items:center;justify-content:center}
 
-/* animated stripy border (behind the inner card) */
+/* animated stripy border (around the outside) */
 .stage-inner::before{
   content:'';
   position:absolute;
-  inset:0; /* cover the block */
-  border-radius:14px;
-  padding:3px; /* space for the inner card */
-  /* thicker repeating stripes: blue and yellow */
-  background: repeating-linear-gradient(45deg,
-    #007bff 0 20px,
-    #ffd400 20px 40px);
-  -webkit-mask: linear-gradient(#000 0 0); /* ensure visibility */
-  mask: linear-gradient(#000 0 0);
+  inset:0;
+  border-radius:12px;
   z-index:1;
-  /* larger background so movement is more visible */
-  background-size:300% 300%;
-  background-repeat:repeat;
-  will-change:background-position;
-  /* slower long-running animation so the loop reset is imperceptible */
-  animation: stripe-move 10s linear infinite;
+  pointer-events:none;
+  /* continuous diagonal stripes */
+  background: repeating-linear-gradient(45deg,
+    #007bff 0 16px,
+    #ffd400 16px 32px);
+  background-size:45.25px 45.25px;
+  background-attachment:fixed;
+  animation: stripe-move-diagonal 10s linear infinite;
 }
 
 /* inner card that holds content */
 .stage-body{
   position:relative;
   z-index:2;
-  background:rgba(255,255,255,0.02);
+  background:var(--panel);
   padding:18px;
   border-radius:10px;
   width:100%;
@@ -72,10 +67,9 @@ body{
   justify-content:center;
 }
 
-@keyframes stripe-move{
+@keyframes stripe-move-diagonal{
   from{background-position:0 0}
-  /* move a large distance so the end/start match visually */
-  to{background-position:720px 720px}
+  to{background-position:500px 0px}
 }
 
 @media (prefers-reduced-motion: reduce){
@@ -87,24 +81,34 @@ body{
 .lobby .code{font-size:2rem;background:rgba(255,255,255,0.04);padding:10px 18px;border-radius:8px;margin:10px 0}
 
 .playArea{width:100%;display:flex;flex-direction:column;align-items:center}
-.media{position:relative;width:100%;max-width:900px}
-#kitImage{width:100%;height:auto;max-height:62vh;display:block;margin:0 auto;border-radius:8px;object-fit:contain;cursor:zoom-in;transition:transform .12s ease}
+#media, .media{position:relative;width:100%;max-width:1200px}
+#kitImage{width:100%;height:auto;max-height:55vh;display:block;margin:0 auto;border-radius:8px;object-fit:contain;cursor:zoom-in;transition:transform .12s ease}
 
-.timer{position:absolute;right:12px;top:12px;background:rgba(0,0,0,0.5);padding:10px 12px;border-radius:999px;font-weight:700;color:var(--white);min-width:56px;text-align:center}
+.timer{position:absolute;top:18px;right:24px;background:rgba(0,0,0,0.55);padding:10px 16px;border-radius:999px;font-weight:800;color:var(--white);min-width:56px;text-align:center;z-index:10;font-size:1.15rem;box-shadow:0 2px 8px rgba(0,0,0,0.18)}
 
-.result{margin-top:18px;color:#ffffff;width:100%;max-width:900px;text-align:center;font-size:1.15rem;font-weight:800;white-space:pre-line;line-height:1.25;padding:10px 14px;background:rgba(0,0,0,0.45);border-radius:8px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 18px rgba(0,0,0,0.5)}
-.result{ -webkit-text-stroke: 0.6px #000; text-shadow: 0 2px 0 rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.35) }
+.result{margin-top:18px;color:#222c3c;width:100%;max-width:900px;text-align:center;font-size:1.15rem;font-weight:800;white-space:normal;line-height:1.5;padding:10px 14px;background:rgba(255,255,255,0.18);border-radius:8px;border:1px solid rgba(0,0,0,0.13);text-shadow:0 1px 6px rgba(0,0,0,0.10);}
+.result { -webkit-text-stroke: 0px; text-shadow: none }
+.result-answer-block{display:inline-block;margin:6px 8px;padding:10px 14px;background:rgba(109, 126, 255, 0.3);border:2px solid rgba(255, 255, 255, 0.6);border-radius:8px;color:#ffffff;font-weight:600;font-size:0.95rem}
+.result-link{color:#00d4ff;text-decoration:underline;cursor:pointer}
+.result-link:hover{color:#00a8cc}
 
 .controls{margin-top:18px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
-.btn{padding:14px 22px;border-radius:10px;background:var(--accent-2);color:var(--white);font-weight:700;cursor:pointer;font-size:1rem;border:2px solid #000;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
+.btn{padding:14px 22px;border-radius:10px;background:var(--accent-2);color:var(--white);font-weight:700;cursor:pointer;font-size:1.25rem;border:2px solid #000;box-shadow:0 6px 18px rgba(0,0,0,0.35)}
 .btn.secondary{background:transparent;border:2px solid #000;color:var(--white)}
 /* add crisp black stroke to button text and important headings */
-.btn, .btn *{ -webkit-text-stroke: 0.9px #000; text-shadow: 0 1px 0 #000 }
+.btn, .btn *{
+  -webkit-text-stroke: 0;
+  text-shadow: none;
+  font-weight:900;
+  font-family:inherit;
+  letter-spacing:0.01em;
+}
 .cta{padding:12px 22px;background:var(--accent);color:white;border-radius:10px;border:none;font-weight:800;font-size:1rem}
 
 @media(max-width:900px){
-  .layout{flex-direction:column;padding:16px}
+  .layout{flex-direction:column;padding:16px;max-width:100vw}
   .panel{width:100%}
+  #media, .media{max-width:100%}
 }
 
 /* zooming class preserved for JS */

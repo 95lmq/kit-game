@@ -202,62 +202,57 @@ function setupImageInteractions(){
   }
 
   img.addEventListener("touchstart", e => {
-    if (e.touches.length === 1) {
-      const t = e.touches[0]; 
-      const now = Date.now();
-      
-      // Handle double tap for zoom
-      if (now - lastTouchTime < 300) {
-        if (scale === 1) { 
-          setOriginRelative(t.clientX, t.clientY); 
-          scale = clamp(2.5, minScale, maxScale); 
-          img.classList.add("zooming"); 
-        } else { 
-          scale = 1; 
-          panX = 0; 
-          panY = 0; 
-          img.classList.remove("zooming"); 
-        }
-        setTransform(); 
-        e.preventDefault(); 
-        lastTouchTime = 0; 
-        return;
+    const t = e.touches[0]; 
+    const now = Date.now();
+    
+    // Handle double tap for zoom
+    if (now - lastTouchTime < 300) {
+      if (scale === 1) { 
+        setOriginRelative(t.clientX, t.clientY); 
+        scale = clamp(2.5, minScale, maxScale); 
+        img.classList.add("zooming"); 
+      } else { 
+        scale = 1; 
+        panX = 0; 
+        panY = 0; 
+        img.classList.remove("zooming"); 
       }
-      
-      lastTouchTime = now;
-      
-      // Always start tracking for potential panning
-      startPanX = t.clientX - panX; 
-      startPanY = t.clientY - panY;
-      
-      // Only prevent default if we're zoomed in
-      if (scale > 1) {
-        isPanning = true;
-        e.preventDefault();
-      }
+      setTransform(); 
+      e.preventDefault(); 
+      e.stopPropagation();
+      lastTouchTime = 0; 
+      return;
     }
+    
+    lastTouchTime = now;
+    
+    // Always prepare for panning
+    startPanX = t.clientX - panX; 
+    startPanY = t.clientY - panY;
+    isPanning = false; // Reset panning state
+    
+    // Always prevent default to take full control
+    e.preventDefault();
+    e.stopPropagation();
   }, { passive: false });
 
   img.addEventListener("touchmove", e => {
-    if (e.touches.length === 1) {
+    if (e.touches.length === 1 && scale > 1) {
       const t = e.touches[0];
       
-      // If we're zoomed in, handle panning
-      if (scale > 1) {
-        if (!isPanning) {
-          // Start panning if we haven't already
-          isPanning = true;
-          startPanX = t.clientX - panX; 
-          startPanY = t.clientY - panY;
-        }
-        
-        panX = t.clientX - startPanX; 
-        panY = t.clientY - startPanY; 
-        clampPan(); 
-        setTransform(); 
-        e.preventDefault();
-        e.stopPropagation();
-      }
+      // Activate panning
+      isPanning = true;
+      
+      panX = t.clientX - startPanX; 
+      panY = t.clientY - startPanY; 
+      clampPan(); 
+      setTransform(); 
+      
+      // Debug logging
+      console.log(`Panning: panX=${panX.toFixed(1)}, panY=${panY.toFixed(1)}, scale=${scale}`);
+      
+      e.preventDefault();
+      e.stopPropagation();
     }
   }, { passive: false });
 

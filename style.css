@@ -106,9 +106,11 @@ body{
 .cta{padding:12px 22px;background:var(--accent);color:white;border-radius:10px;border:none;font-weight:800;font-size:1rem}
 
 @media(max-width:900px){
-  .layout{flex-direction:column;padding:16px;max-width:100vw}
+  .layout{flex-direction:column;padding:8px;max-width:100vw}
   .panel{width:100%}
   #media, .media{max-width:100%}
+  .stage-inner{padding:12px}
+  .stage-body{padding:12px}
 }
 
 /* zooming class preserved for JS */

@@ -169,7 +169,7 @@ function setupImageInteractions(){
 
   let scale = 1;
   const minScale = 1;
-  const maxScale = 5;
+  const maxScale = 7.5;
   let startScale = 1;
   let startDist = 0;
 
@@ -213,6 +213,7 @@ function setupImageInteractions(){
   img.addEventListener("touchstart", e => {
     if (e.touches.length === 2) {
       isPinching = true; startDist = getDistance(e.touches); startScale = scale; const mid = getMidpoint(e.touches); setOriginRelative(mid.x, mid.y); startPanX = panX; startPanY = panY;
+      e.preventDefault();
     } else if (e.touches.length === 1) {
       const t = e.touches[0]; const now = Date.now();
       if (now - lastTouchTime < 300) {
@@ -221,12 +222,28 @@ function setupImageInteractions(){
         setTransform(); e.preventDefault(); lastTouchTime = 0; return;
       }
       lastTouchTime = now;
-      isPanning = true; startPanX = t.clientX - panX * 1.3; startPanY = t.clientY - panY * 1.3;
+      if (scale > 1) {
+        isPanning = true; startPanX = t.clientX - panX * 1.3; startPanY = t.clientY - panY * 1.3;
+        e.preventDefault();
+      }
     }
+  }, { passive: false });
+
+  img.addEventListener("touchmove", e => {
     if (isPinching && e.touches.length >= 2) {
-      const dist = getDistance(e.touches); scale = clamp(startScale * (dist / startDist), minScale, maxScale); img.classList.add("zooming"); clampPan(); setTransform(); e.preventDefault();
+      const dist = getDistance(e.touches); 
+      scale = clamp(startScale * (dist / startDist), minScale, maxScale); 
+      img.classList.add("zooming"); 
+      clampPan(); 
+      setTransform(); 
+      e.preventDefault();
     } else if (isPanning && e.touches.length === 1 && scale > 1) {
-      const t = e.touches[0]; panX = (t.clientX - startPanX) / 1.3; panY = (t.clientY - startPanY) / 1.3; clampPan(); setTransform(); e.preventDefault();
+      const t = e.touches[0]; 
+      panX = (t.clientX - startPanX) / 1.3; 
+      panY = (t.clientY - startPanY) / 1.3; 
+      clampPan(); 
+      setTransform(); 
+      e.preventDefault();
     }
   }, { passive: false });
 

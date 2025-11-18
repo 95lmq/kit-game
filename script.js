@@ -6,10 +6,11 @@ let usedIds = new Set(); // track which kits have been shown
 
 let timerInterval = null;
 let timeLeft = 0;
-const timePerImage = 20; // seconds
+let timePerImage = 20; // seconds - can be modified by settings
 
 let dataLoaded = false;
 window._domReady = false;
+let gameStarted = false;
 
 // Load JSON data but do not auto-start; wait for user to press Start
 Promise.all([
@@ -19,12 +20,17 @@ Promise.all([
   matchedKits = kitsData;
   kitMaster = masterData;
   dataLoaded = true;
-  // If DOM already ready, start the round now; otherwise DOMContentLoaded handler will start it.
-  if (window._domReady) startRound();
+  // Data is loaded, but don't start the game until user clicks start
+  updateSplashScreen();
 }).catch(err => {
   console.error('Failed to load kit data', err);
-  const res = document.getElementById('result');
-  if (res) res.textContent = 'Failed to load data.';
+  const splashScreen = document.getElementById('splashScreen');
+  if (splashScreen) {
+    const content = splashScreen.querySelector('.splash-content');
+    if (content) {
+      content.innerHTML = '<h1 class="splash-title">Error</h1><p class="splash-description">Failed to load game data. Please refresh the page.</p>';
+    }
+  }
   dataLoaded = false;
 });
 
@@ -33,6 +39,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const revealBtn = document.getElementById("revealBtn");
   const nextBtn = document.getElementById("nextBtn");
   const newRoundBtn = document.getElementById("newRoundBtn");
+  const startGameBtn = document.getElementById("startGameBtn");
+  const settingsBtn = document.getElementById("settingsBtn");
+  const gameSettingsBtn = document.getElementById("gameSettingsBtn");
+  const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+  const cancelSettingsBtn = document.getElementById("cancelSettingsBtn");
+  const timerSlider = document.getElementById("timerSlider");
 
   revealBtn.addEventListener("click", () => {
     revealAnswer();
@@ -47,19 +59,45 @@ document.addEventListener("DOMContentLoaded", () => {
     newRound();
   });
 
+  startGameBtn.addEventListener("click", () => {
+    startGame();
+  });
+
+  settingsBtn.addEventListener("click", () => {
+    openSettings();
+  });
+
+  gameSettingsBtn.addEventListener("click", () => {
+    openSettings();
+  });
+
+  saveSettingsBtn.addEventListener("click", () => {
+    saveSettings();
+  });
+
+  cancelSettingsBtn.addEventListener("click", () => {
+    closeSettings();
+  });
+
+  timerSlider.addEventListener("input", (e) => {
+    document.getElementById("timerValue").textContent = e.target.value;
+  });
+
   // Setup zoom & pan after DOM is ready
   setupImageInteractions();
-  // Start the round only after data is loaded. If data isn't ready yet, show a Loading message;
-  // the fetch promise will call startRound() when it's ready.
-  if (dataLoaded) startRound();
-  else {
-    const res = document.getElementById('result');
-    if (res) res.textContent = 'Loading images...';
-  }
+  
+  // Load saved settings
+  loadSettings();
+  
+  // Update splash screen status
+  updateSplashScreen();
 });
 
 function startRound() {
   document.getElementById("newRoundBtn").style.display = "none";
+  document.getElementById("gameSettingsBtn").style.display = "none";
+  document.getElementById("nextBtn").disabled = false;
+  document.getElementById("nextBtn").classList.remove("disabled");
 
   const availableKits = matchedKits.filter(
     kit => !usedIds.has(kit.matched_sys_combo_id)
@@ -129,11 +167,82 @@ function nextImage() {
   } else {
     document.getElementById("result").textContent = "Round finished! Click 'New Round' to continue.";
     document.getElementById("newRoundBtn").style.display = "inline-block";
+    document.getElementById("gameSettingsBtn").style.display = "inline-block";
+    document.getElementById("nextBtn").disabled = true;
+    document.getElementById("nextBtn").classList.add("disabled");
   }
 }
 
 function newRound() {
   startRound();
+}
+
+function updateSplashScreen() {
+  const startGameBtn = document.getElementById("startGameBtn");
+  if (!startGameBtn) return;
+  
+  if (dataLoaded) {
+    startGameBtn.textContent = "Start Game";
+    startGameBtn.disabled = false;
+    startGameBtn.style.opacity = "1";
+  } else {
+    startGameBtn.textContent = "Loading...";
+    startGameBtn.disabled = true;
+    startGameBtn.style.opacity = "0.6";
+  }
+}
+
+function startGame() {
+  if (!dataLoaded) return;
+  
+  gameStarted = true;
+  const splashScreen = document.getElementById("splashScreen");
+  
+  if (splashScreen) {
+    splashScreen.classList.add("hidden");
+    
+    // Remove the splash screen from DOM after transition
+    setTimeout(() => {
+      splashScreen.style.display = "none";
+    }, 500);
+  }
+  
+  // Start the first round
+  startRound();
+}
+
+function openSettings() {
+  const modal = document.getElementById("settingsModal");
+  const slider = document.getElementById("timerSlider");
+  const valueDisplay = document.getElementById("timerValue");
+  
+  // Set current timer value
+  slider.value = timePerImage;
+  valueDisplay.textContent = timePerImage;
+  
+  modal.classList.remove("hidden");
+}
+
+function closeSettings() {
+  const modal = document.getElementById("settingsModal");
+  modal.classList.add("hidden");
+}
+
+function saveSettings() {
+  const slider = document.getElementById("timerSlider");
+  timePerImage = parseInt(slider.value);
+  
+  // Save to localStorage for persistence
+  localStorage.setItem('guessTheKitTimer', timePerImage);
+  
+  closeSettings();
+}
+
+function loadSettings() {
+  const savedTimer = localStorage.getItem('guessTheKitTimer');
+  if (savedTimer) {
+    timePerImage = parseInt(savedTimer);
+  }
 }
 
 function startTimer(seconds) {

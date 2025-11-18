@@ -226,24 +226,38 @@ function setupImageInteractions(){
       
       lastTouchTime = now;
       
-      // Start panning if zoomed in
+      // Always start tracking for potential panning
+      startPanX = t.clientX - panX; 
+      startPanY = t.clientY - panY;
+      
+      // Only prevent default if we're zoomed in
       if (scale > 1) {
-        isPanning = true; 
-        startPanX = t.clientX - panX; 
-        startPanY = t.clientY - panY;
+        isPanning = true;
         e.preventDefault();
       }
     }
   }, { passive: false });
 
   img.addEventListener("touchmove", e => {
-    if (isPanning && e.touches.length === 1 && scale > 1) {
-      const t = e.touches[0]; 
-      panX = t.clientX - startPanX; 
-      panY = t.clientY - startPanY; 
-      clampPan(); 
-      setTransform(); 
-      e.preventDefault();
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      
+      // If we're zoomed in, handle panning
+      if (scale > 1) {
+        if (!isPanning) {
+          // Start panning if we haven't already
+          isPanning = true;
+          startPanX = t.clientX - panX; 
+          startPanY = t.clientY - panY;
+        }
+        
+        panX = t.clientX - startPanX; 
+        panY = t.clientY - startPanY; 
+        clampPan(); 
+        setTransform(); 
+        e.preventDefault();
+        e.stopPropagation();
+      }
     }
   }, { passive: false });
 

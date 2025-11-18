@@ -174,7 +174,6 @@ function setupImageInteractions(){
   let startDist = 0;
 
   let isPanning = false;
-  let isPinching = false;
   let startPanX = 0;
   let startPanY = 0;
   let panX = 0;
@@ -182,6 +181,7 @@ function setupImageInteractions(){
   let lastTouchTime = 0;
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  
   function clampPan(){
     const baseW = img.offsetWidth;
     const baseH = img.offsetHeight;
@@ -190,18 +190,9 @@ function setupImageInteractions(){
     panX = clamp(panX, -halfExtraW, halfExtraW);
     panY = clamp(panY, -halfExtraH, halfExtraH);
   }
+  
   function setTransform(){
-    const tx = panX / Math.max(0.0001, scale);
-    const ty = panY / Math.max(0.0001, scale);
-    img.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
-  }
-  function getDistance(touches){
-    const dx = touches[0].clientX - touches[1].clientX;
-    const dy = touches[0].clientY - touches[1].clientY;
-    return Math.hypot(dx, dy);
-  }
-  function getMidpoint(touches){
-    return { x: (touches[0].clientX + touches[1].clientX)/2, y: (touches[0].clientY + touches[1].clientY)/2 };
+    img.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
   }
   function setOriginRelative(clientX, clientY){
     const rect = img.getBoundingClientRect();
@@ -211,36 +202,45 @@ function setupImageInteractions(){
   }
 
   img.addEventListener("touchstart", e => {
-    if (e.touches.length === 2) {
-      isPinching = true; startDist = getDistance(e.touches); startScale = scale; const mid = getMidpoint(e.touches); setOriginRelative(mid.x, mid.y); startPanX = panX; startPanY = panY;
-      e.preventDefault();
-    } else if (e.touches.length === 1) {
-      const t = e.touches[0]; const now = Date.now();
+    if (e.touches.length === 1) {
+      const t = e.touches[0]; 
+      const now = Date.now();
+      
+      // Handle double tap for zoom
       if (now - lastTouchTime < 300) {
-        if (scale === 1) { setOriginRelative(t.clientX, t.clientY); scale = clamp(2.5, minScale, maxScale); img.classList.add("zooming"); }
-        else { scale = 1; panX = 0; panY = 0; img.classList.remove("zooming"); }
-        setTransform(); e.preventDefault(); lastTouchTime = 0; return;
+        if (scale === 1) { 
+          setOriginRelative(t.clientX, t.clientY); 
+          scale = clamp(2.5, minScale, maxScale); 
+          img.classList.add("zooming"); 
+        } else { 
+          scale = 1; 
+          panX = 0; 
+          panY = 0; 
+          img.classList.remove("zooming"); 
+        }
+        setTransform(); 
+        e.preventDefault(); 
+        lastTouchTime = 0; 
+        return;
       }
+      
       lastTouchTime = now;
+      
+      // Start panning if zoomed in
       if (scale > 1) {
-        isPanning = true; startPanX = t.clientX - panX * 1.3; startPanY = t.clientY - panY * 1.3;
+        isPanning = true; 
+        startPanX = t.clientX - panX; 
+        startPanY = t.clientY - panY;
         e.preventDefault();
       }
     }
   }, { passive: false });
 
   img.addEventListener("touchmove", e => {
-    if (isPinching && e.touches.length >= 2) {
-      const dist = getDistance(e.touches); 
-      scale = clamp(startScale * (dist / startDist), minScale, maxScale); 
-      img.classList.add("zooming"); 
-      clampPan(); 
-      setTransform(); 
-      e.preventDefault();
-    } else if (isPanning && e.touches.length === 1 && scale > 1) {
+    if (isPanning && e.touches.length === 1 && scale > 1) {
       const t = e.touches[0]; 
-      panX = (t.clientX - startPanX) / 1.3; 
-      panY = (t.clientY - startPanY) / 1.3; 
+      panX = t.clientX - startPanX; 
+      panY = t.clientY - startPanY; 
       clampPan(); 
       setTransform(); 
       e.preventDefault();
@@ -248,8 +248,14 @@ function setupImageInteractions(){
   }, { passive: false });
 
   img.addEventListener("touchend", e => {
-    if (e.touches.length === 0) { isPinching = false; isPanning = false; if (scale <= 1.01) { scale = 1; panX = 0; panY = 0; img.classList.remove("zooming"); setTransform(); } }
-    else if (e.touches.length === 1) { isPinching = false; isPanning = true; const t = e.touches[0]; startPanX = t.clientX - panX; startPanY = t.clientY - panY; }
+    isPanning = false;
+    if (scale <= 1.01) { 
+      scale = 1; 
+      panX = 0; 
+      panY = 0; 
+      img.classList.remove("zooming"); 
+      setTransform(); 
+    }
   });
 
   img.addEventListener("wheel", e => {
@@ -307,9 +313,33 @@ function setupImageInteractions(){
   };
 
   let isMouseDown = false;
-  img.addEventListener("mousedown", e => { if (scale > 1) { isMouseDown = true; startPanX = e.clientX - panX * 1.3; startPanY = e.clientY - panY * 1.3; e.preventDefault(); } });
-  document.addEventListener("mousemove", e => { if (!isMouseDown) return; panX = (e.clientX - startPanX) / 1.3; panY = (e.clientY - startPanY) / 1.3; clampPan(); setTransform(); });
-  document.addEventListener("mouseup", () => { isMouseDown = false; if (scale <= 1.01) { scale = 1; panX = 0; panY = 0; img.classList.remove("zooming"); setTransform(); } });
+  img.addEventListener("mousedown", e => { 
+    if (scale > 1) { 
+      isMouseDown = true; 
+      startPanX = e.clientX - panX; 
+      startPanY = e.clientY - panY; 
+      e.preventDefault(); 
+    } 
+  });
+  
+  document.addEventListener("mousemove", e => { 
+    if (!isMouseDown) return; 
+    panX = e.clientX - startPanX; 
+    panY = e.clientY - startPanY; 
+    clampPan(); 
+    setTransform(); 
+  });
+  
+  document.addEventListener("mouseup", () => { 
+    isMouseDown = false; 
+    if (scale <= 1.01) { 
+      scale = 1; 
+      panX = 0; 
+      panY = 0; 
+      img.classList.remove("zooming"); 
+      setTransform(); 
+    } 
+  });
   img.addEventListener("dragstart", e => e.preventDefault());
 }
 

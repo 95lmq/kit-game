@@ -7,6 +7,7 @@ let usedIds = new Set(); // track which kits have been shown
 let timerInterval = null;
 let timeLeft = 0;
 let timePerImage = 20; // seconds - can be modified by settings
+let roundSize = 10; // number of kits per round - can be modified by settings
 
 let dataLoaded = false;
 window._domReady = false;
@@ -45,6 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveSettingsBtn = document.getElementById("saveSettingsBtn");
   const cancelSettingsBtn = document.getElementById("cancelSettingsBtn");
   const timerSlider = document.getElementById("timerSlider");
+  const roundSizeInput = document.getElementById("roundSizeInput");
 
   revealBtn.addEventListener("click", () => {
     revealAnswer();
@@ -81,6 +83,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   timerSlider.addEventListener("input", (e) => {
     document.getElementById("timerValue").textContent = e.target.value;
+    updateSliderFill(e.target);
+  });
+
+  roundSizeInput.addEventListener("input", (e) => {
+    const value = parseInt(e.target.value);
+    if (value >= 1 && value <= 50) {
+      e.target.setCustomValidity("");
+    } else {
+      e.target.setCustomValidity("Please enter a number between 1 and 50");
+    }
   });
 
   // Setup zoom & pan after DOM is ready
@@ -98,17 +110,35 @@ function startRound() {
   document.getElementById("gameSettingsBtn").style.display = "none";
   document.getElementById("nextBtn").disabled = false;
   document.getElementById("nextBtn").classList.remove("disabled");
+  document.getElementById("revealBtn").disabled = false;
+  document.getElementById("revealBtn").classList.remove("disabled");
 
-  const availableKits = matchedKits.filter(
-    kit => !usedIds.has(kit.matched_sys_combo_id)
-  );
+  const availableKits = matchedKits.filter(kit => {
+    // Exclude kits that have already been used
+    if (usedIds.has(kit.matched_sys_combo_id)) {
+      return false;
+    }
+    
+    // Exclude kits where the master record has DISREGARD: "YES"
+    const systemEntry = kitMaster.find(s => s.sys_combo_id === kit.matched_sys_combo_id);
+    if (systemEntry && systemEntry.DISREGARD === "YES") {
+      return false;
+    }
+    
+    // Exclude kits where the master record has a null Link
+    if (systemEntry && systemEntry.Link === null) {
+      return false;
+    }
+    
+    return true;
+  });
 
   if (availableKits.length === 0) {
     document.getElementById("result").textContent = "No more kits left to play!";
     return;
   }
 
-  roundKits = availableKits.sort(() => 0.5 - Math.random()).slice(0, 10);
+  roundKits = availableKits.sort(() => 0.5 - Math.random()).slice(0, roundSize);
   roundKits.forEach(kit => usedIds.add(kit.matched_sys_combo_id));
 
   currentIndex = 0;
@@ -121,6 +151,11 @@ function loadImage() {
   const imgEl = document.getElementById("kitImage");
   document.getElementById("result").textContent = "";
   document.getElementById("newRoundBtn").style.display = "none";
+  document.getElementById("gameSettingsBtn").style.display = "none";
+  
+  // Re-enable the reveal button for new image
+  document.getElementById("revealBtn").disabled = false;
+  document.getElementById("revealBtn").classList.remove("disabled");
   
   // Set up image load handler before setting src
   imgEl.onload = () => {
@@ -135,12 +170,16 @@ function revealAnswer() {
   const currentKit = roundKits[currentIndex];
   if (!currentKit) return;
 
+  // Disable the reveal button after use
+  document.getElementById("revealBtn").disabled = true;
+  document.getElementById("revealBtn").classList.add("disabled");
+
   const systemEntry = kitMaster.find(
     s => s.sys_combo_id === currentKit.matched_sys_combo_id
   );
 
   if (systemEntry) {
-    const answers = [systemEntry.Name_1, systemEntry.Name_2, systemEntry.Name_3, systemEntry.Name_4]
+    const answers = [systemEntry.Name_1, systemEntry.Name_2, systemEntry.Name_3, systemEntry.Name_4, systemEntry.Name_5]
       .filter(name => name && name.trim() !== "");
 
     let html = `<div>Possible correct answers:</div><div style="margin-top:8px;">`;
@@ -157,6 +196,11 @@ function revealAnswer() {
   } else {
     document.getElementById("result").textContent = "No system info found.";
   }
+
+  // Check if this was the last image in the round
+  if (currentIndex >= roundKits.length - 1) {
+    endRound();
+  }
 }
 
 function nextImage() {
@@ -165,12 +209,33 @@ function nextImage() {
   if (currentIndex < roundKits.length) {
     loadImage();
   } else {
-    document.getElementById("result").textContent = "Round finished! Click 'New Round' to continue.";
-    document.getElementById("newRoundBtn").style.display = "inline-block";
-    document.getElementById("gameSettingsBtn").style.display = "inline-block";
-    document.getElementById("nextBtn").disabled = true;
-    document.getElementById("nextBtn").classList.add("disabled");
+    endRound();
   }
+}
+
+function endRound() {
+  // Reset zoom at end of round so buttons aren't covered
+  const imgEl = document.getElementById("kitImage");
+  if (typeof imgEl.resetZoom === 'function') {
+    imgEl.resetZoom();
+  }
+  
+  // Only update result text if there's no answer currently displayed
+  const resultEl = document.getElementById("result");
+  if (!resultEl.innerHTML || resultEl.innerHTML.trim() === "" || resultEl.textContent === "Loading images...") {
+    resultEl.textContent = "Round finished! Click 'New Round' to continue.";
+  } else {
+    // If there's an answer displayed, append the round finished message
+    const currentHTML = resultEl.innerHTML;
+    resultEl.innerHTML = currentHTML + `<div style="margin-top:16px;font-weight:800;color:#ffd400;">Round finished! Click 'New Round' to continue.</div>`;
+  }
+  
+  document.getElementById("newRoundBtn").style.display = "inline-block";
+  document.getElementById("gameSettingsBtn").style.display = "inline-block";
+  document.getElementById("nextBtn").disabled = true;
+  document.getElementById("nextBtn").classList.add("disabled");
+  document.getElementById("revealBtn").disabled = true;
+  document.getElementById("revealBtn").classList.add("disabled");
 }
 
 function newRound() {
@@ -215,12 +280,26 @@ function openSettings() {
   const modal = document.getElementById("settingsModal");
   const slider = document.getElementById("timerSlider");
   const valueDisplay = document.getElementById("timerValue");
+  const roundSizeInput = document.getElementById("roundSizeInput");
   
   // Set current timer value
   slider.value = timePerImage;
   valueDisplay.textContent = timePerImage;
+  updateSliderFill(slider);
+  
+  // Set current round size
+  roundSizeInput.value = roundSize;
   
   modal.classList.remove("hidden");
+}
+
+// Update slider fill percentage
+function updateSliderFill(slider) {
+  const value = slider.value;
+  const min = slider.min || 0;
+  const max = slider.max || 100;
+  const percentage = ((value - min) / (max - min)) * 100;
+  slider.style.setProperty('--fill-percent', percentage + '%');
 }
 
 function closeSettings() {
@@ -230,10 +309,18 @@ function closeSettings() {
 
 function saveSettings() {
   const slider = document.getElementById("timerSlider");
+  const roundSizeInput = document.getElementById("roundSizeInput");
+  
   timePerImage = parseInt(slider.value);
+  
+  const newRoundSize = parseInt(roundSizeInput.value);
+  if (newRoundSize >= 1 && newRoundSize <= 50) {
+    roundSize = newRoundSize;
+  }
   
   // Save to localStorage for persistence
   localStorage.setItem('guessTheKitTimer', timePerImage);
+  localStorage.setItem('guessTheKitRoundSize', roundSize);
   
   closeSettings();
 }
@@ -242,6 +329,17 @@ function loadSettings() {
   const savedTimer = localStorage.getItem('guessTheKitTimer');
   if (savedTimer) {
     timePerImage = parseInt(savedTimer);
+  }
+  
+  const savedRoundSize = localStorage.getItem('guessTheKitRoundSize');
+  if (savedRoundSize) {
+    roundSize = parseInt(savedRoundSize);
+  }
+  
+  // Update timer display to match the loaded setting
+  const timerEl = document.getElementById("timer");
+  if (timerEl) {
+    timerEl.textContent = timePerImage;
   }
 }
 
@@ -259,7 +357,10 @@ function startTimer(seconds) {
       timerInterval = null;
       // auto reveal and allow next
       revealAnswer();
-      document.getElementById("newRoundBtn").style.display = "inline-block";
+      // Check if this was the last image - if so, end the round
+      if (currentIndex >= roundKits.length - 1) {
+        endRound();
+      }
     }
   }, 1000);
 }
@@ -318,7 +419,7 @@ function setupImageInteractions(){
     if (now - lastTouchTime < 300) {
       if (scale === 1) { 
         setOriginRelative(t.clientX, t.clientY); 
-        scale = clamp(2.5, minScale, maxScale); 
+        scale = clamp(3.0, minScale, maxScale); 
         img.classList.add("zooming"); 
       } else { 
         scale = 1; 

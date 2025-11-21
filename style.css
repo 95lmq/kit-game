@@ -122,6 +122,20 @@ body{
 /* zooming class preserved for JS */
 #kitImage.zooming{cursor:zoom-out;transform-origin:center center;touch-action:none}
 
+/* Hide controls when image is zoomed to prevent overlap */
+#kitImage.zooming ~ .controls {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* On mobile, completely hide controls when zoomed */
+@media(max-width: 900px) {
+  #kitImage.zooming ~ .controls {
+    visibility: hidden;
+  }
+}
+
 /* Splash Screen Styles */
 .splash-screen {
   position: fixed;

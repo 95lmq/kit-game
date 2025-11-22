@@ -65,6 +65,13 @@ Promise.all([
 
 document.addEventListener("DOMContentLoaded", () => {
   window._domReady = true;
+  
+  // Initialize loading overlay state (important for GitHub Pages)
+  const loadingOverlay = document.getElementById("loadingOverlay");
+  if (loadingOverlay) {
+    loadingOverlay.classList.remove("show");
+  }
+  
   const revealBtn = document.getElementById("revealBtn");
   const nextBtn = document.getElementById("nextBtn");
   const newRoundBtn = document.getElementById("newRoundBtn");
@@ -195,6 +202,12 @@ function loadImage() {
   // Set up loading overlay with delay
   const loadingOverlay = document.getElementById("loadingOverlay");
   let loadingTimeout;
+  
+  // Ensure overlay is initially hidden (important for GitHub Pages)
+  loadingOverlay.classList.remove("show");
+  
+  // Ensure overlay is initially hidden
+  loadingOverlay.classList.remove("show");
   
   // Show loading overlay after 500ms if image hasn't loaded
   loadingTimeout = setTimeout(() => {

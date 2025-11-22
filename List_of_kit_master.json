@@ -6,7 +6,7 @@
     "Name_3": null,
     "Name_4": null,
     "DISREGARD": null,
-    "Link": "https://en.wikipedia.org/wiki/100_mm_anti-tank_gun_T-12",
+    "Link": "https://en.wikipedia.org/wiki/MT-12",
     "Name_5": null
   },
   {
@@ -83,7 +83,7 @@
     "sys_combo_id": 9,
     "Name_1": "2S23",
     "Name_2": "Nona-SVK",
-    "Name_3": "BTR-80",
+    "Name_3": null,
     "Name_4": null,
     "DISREGARD": null,
     "Link": "https://en.wikipedia.org/wiki/2S9_Nona",
@@ -152,7 +152,7 @@
   {
     "sys_combo_id": 16,
     "Name_1": "2B26",
-    "Name_2": "GRAD-K",
+    "Name_2": "GRAD",
     "Name_3": "BM-21",
     "Name_4": null,
     "DISREGARD": null,
@@ -212,10 +212,10 @@
   {
     "sys_combo_id": 22,
     "Name_1": "T64-BV",
-    "Name_2": null,
+    "Name_2": "T64",
     "Name_3": null,
     "Name_4": null,
-    "DISREGARD": null,
+    "DISREGARD": "YES",
     "Link": "https://en.wikipedia.org/wiki/T-64",
     "Name_5": null
   },
@@ -782,7 +782,7 @@
   {
     "sys_combo_id": 79,
     "Name_1": "2F510",
-    "Name_2": "GAZ-66",
+    "Name_2": "URAL-43206",
     "Name_3": "2S12",
     "Name_4": null,
     "DISREGARD": null,
@@ -963,11 +963,11 @@
     "sys_combo_id": 97,
     "Name_1": "S-125",
     "Name_2": "5P73",
-    "Name_3": "Neva",
+    "Name_3": "SA-3",
     "Name_4": "Pechora",
     "DISREGARD": null,
     "Link": "https://en.wikipedia.org/wiki/S-125_Neva/Pechora",
-    "Name_5": null
+    "Name_5": "GOA"
   },
   {
     "sys_combo_id": 98,
@@ -2044,7 +2044,7 @@
     "Name_1": "BERGEPANZER 2 ARV",
     "Name_2": "LEOPARD 1",
     "Name_3": "WISENT 1",
-    "Name_4": null,
+    "Name_4": "BTS-4 ARV",
     "DISREGARD": null,
     "Link": "https://en.wikipedia.org/wiki/Leopard_1#",
     "Name_5": null
@@ -2122,7 +2122,7 @@
   {
     "sys_combo_id": 213,
     "Name_1": "BMD-2",
-    "Name_2": "BMD M1981-1",
+    "Name_2": null,
     "Name_3": null,
     "Name_4": null,
     "DISREGARD": null,
@@ -3582,8 +3582,8 @@
   {
     "sys_combo_id": 359,
     "Name_1": "GAZ-66",
-    "Name_2": "ZU-23-2",
-    "Name_3": "2A13",
+    "Name_2": null,
+    "Name_3": null,
     "Name_4": null,
     "DISREGARD": null,
     "Link": "https://en.wikipedia.org/wiki/GAZ-66",
@@ -3871,12 +3871,12 @@
   },
   {
     "sys_combo_id": 388,
-    "Name_1": null,
-    "Name_2": null,
-    "Name_3": null,
+    "Name_1": "K-53949",
+    "Name_2": "Linza",
+    "Name_3": "Typhoon-K",
     "Name_4": null,
     "DISREGARD": null,
-    "Link": null,
+    "Link": "https://defence-blog.com/russia-showcases-its-upgraded-typhoon-k-armoured-vehicle/",
     "Name_5": null
   },
   {
@@ -3953,7 +3953,7 @@
     "sys_combo_id": 396,
     "Name_1": "KAMAZ",
     "Name_2": null,
-    "Name_3": "KAMAZ",
+    "Name_3": null,
     "Name_4": null,
     "DISREGARD": null,
     "Link": "https://en.wikipedia.org/wiki/List_of_Kamaz_vehicles",
@@ -5423,7 +5423,7 @@
     "sys_combo_id": 543,
     "Name_1": "MINI SHARK ",
     "Name_2": "Ukrspecsystems",
-    "Name_3": null,
+    "Name_3": "Shark",
     "Name_4": null,
     "DISREGARD": null,
     "Link": "https://en.wikipedia.org/wiki/Ukrspecsystems_Shark",
@@ -7105,7 +7105,7 @@
     "Name_2": null,
     "Name_3": null,
     "Name_4": null,
-    "DISREGARD": null,
+    "DISREGARD": "YES",
     "Link": null,
     "Name_5": null
   },
@@ -8883,7 +8883,7 @@
     "sys_combo_id": 889,
     "Name_1": "URAL",
     "Name_2": "URAL-VV",
-    "Name_3": "URAL",
+    "Name_3": null,
     "Name_4": null,
     "DISREGARD": null,
     "Link": "https://armyrecognition.com/archives/archives-land-defense/land-defense-2016/the-first-ural-vv-armored-personnel-carrier-for-russian-army-will-be-manufactured-in-2016-51802161",
@@ -9237,6 +9237,46 @@
     "Name_4": null,
     "DISREGARD": null,
     "Link": "https://en.wikipedia.org/wiki/ZSU-23-4_Shilka",
+    "Name_5": null
+  },
+  {
+    "sys_combo_id": 925,
+    "Name_1": "UAZ-469",
+    "Name_2": "HUNTER",
+    "Name_3": "UAZ-3151",
+    "Name_4": null,
+    "DISREGARD": null,
+    "Link": "https://en.wikipedia.org/wiki/UAZ-469",
+    "Name_5": null
+  },
+  {
+    "sys_combo_id": 926,
+    "Name_1": "URAL",
+    "Name_2": "TANKER",
+    "Name_3": null,
+    "Name_4": null,
+    "DISREGARD": null,
+    "Link": null,
+    "Name_5": null
+  },
+  {
+    "sys_combo_id": 927,
+    "Name_1": "Kirpi",
+    "Name_2": "BMC Kirpi",
+    "Name_3": null,
+    "Name_4": null,
+    "DISREGARD": null,
+    "Link": null,
+    "Name_5": null
+  },
+  {
+    "sys_combo_id": 928,
+    "Name_1": "KAMAZ",
+    "Name_2": "KamAZ-63501",
+    "Name_3": "PP-2005",
+    "Name_4": null,
+    "DISREGARD": null,
+    "Link": "https://de.wikipedia.org/wiki/KamAZ-63501",
     "Name_5": null
   }
 ]

@@ -6,12 +6,40 @@ let usedIds = new Set(); // track which kits have been shown
 
 let timerInterval = null;
 let timeLeft = 0;
-let timePerImage = 20; // seconds - can be modified by settings
+let timePerImage = 30; // seconds - can be modified by settings
 let roundSize = 10; // number of kits per round - can be modified by settings
 
 let dataLoaded = false;
 window._domReady = false;
 let gameStarted = false;
+
+// Character encoding fix function
+function fixCharacterEncoding(text) {
+  if (!text) return text;
+  
+  // Common character replacements for corrupted UTF-8 characters
+  const replacements = {
+    // French characters
+    'V\ufffdhicule': 'Véhicule',
+    'Blind\ufffd': 'Blindé', 
+    'Tract\ufffd': 'Tracté',
+    // German characters
+    'Sch\ufffdtzenpanzer': 'Schützenpanzer',
+    'BR\ufffdCKENLEGEPANZER': 'BRÜCKENLEGEPANZER',
+    // Other common corruptions
+    '2S7M\ufffd': '2S7M',
+    'PEOPLE\ufffdS': "PEOPLE'S",
+    // Generic replacements for common corrupted patterns
+    '\ufffd': '', // Remove standalone replacement characters
+  };
+  
+  let fixed = text;
+  for (const [corrupt, correct] of Object.entries(replacements)) {
+    fixed = fixed.replace(new RegExp(corrupt, 'g'), correct);
+  }
+  
+  return fixed;
+}
 
 // Load JSON data but do not auto-start; wait for user to press Start
 Promise.all([
@@ -49,6 +77,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const roundSizeInput = document.getElementById("roundSizeInput");
 
   revealBtn.addEventListener("click", () => {
+    const imgEl = document.getElementById("kitImage");
+    imgEl.resetZoom();
     revealAnswer();
     stopTimer();
   });
@@ -119,6 +149,11 @@ function startRound() {
       return false;
     }
     
+    // Exclude kits where the matched kit record has DISREGARD: "YES"
+    if (kit.DISREGARD === "YES") {
+      return false;
+    }
+    
     // Exclude kits where the master record has DISREGARD: "YES"
     const systemEntry = kitMaster.find(s => s.sys_combo_id === kit.matched_sys_combo_id);
     if (systemEntry && systemEntry.DISREGARD === "YES") {
@@ -157,10 +192,93 @@ function loadImage() {
   document.getElementById("revealBtn").disabled = false;
   document.getElementById("revealBtn").classList.remove("disabled");
   
-  // Set up image load handler before setting src
+  // Set up loading overlay with delay
+  const loadingOverlay = document.getElementById("loadingOverlay");
+  let loadingTimeout;
+  
+  // Show loading overlay after 500ms if image hasn't loaded
+  loadingTimeout = setTimeout(() => {
+    loadingOverlay.classList.add("show");
+  }, 500);
+  
+  // Set up image load handlers before setting src
   imgEl.onload = () => {
-    if (typeof imgEl.resetZoom === 'function') imgEl.resetZoom();
+    // Clear loading timeout and hide overlay
+    clearTimeout(loadingTimeout);
+    loadingOverlay.classList.remove("show");
+    
+    imgEl.resetZoom();
     startTimer(timePerImage);
+  };
+  
+  // Add error handling with retry logic
+  let retryCount = 0;
+  imgEl.onerror = () => {
+    if (retryCount < 2) {
+      retryCount++;
+      console.warn(`Image failed to load (attempt ${retryCount}), retrying:`, currentKit.url);
+      // Retry loading the image with cache-busting parameter
+      setTimeout(() => {
+        imgEl.src = currentKit.url + '?retry=' + Date.now();
+      }, 500 * retryCount); // Increasing delay for each retry
+    } else {
+      console.error('Image failed to load after retries:', currentKit.url);
+      // Clear loading timeout and hide overlay
+      clearTimeout(loadingTimeout);
+      loadingOverlay.classList.remove("show");
+      
+      // Select a replacement image from available kits
+      console.log('Selecting replacement image...');
+      const availableKits = matchedKits.filter(kit => {
+        // Exclude kits that have already been used
+        if (usedIds.has(kit.matched_sys_combo_id)) {
+          return false;
+        }
+        
+        // Exclude kits where the matched kit record has DISREGARD: "YES"
+        if (kit.DISREGARD === "YES") {
+          return false;
+        }
+        
+        // Exclude kits where the master record has DISREGARD: "YES"
+        const systemEntry = kitMaster.find(s => s.sys_combo_id === kit.matched_sys_combo_id);
+        if (systemEntry && systemEntry.DISREGARD === "YES") {
+          return false;
+        }
+        
+        // Exclude kits where the master record has a null Link
+        if (systemEntry && systemEntry.Link === null) {
+          return false;
+        }
+        
+        return true;
+      });
+      
+      if (availableKits.length > 0) {
+        // Remove the failed kit from used IDs so we can potentially use it later
+        usedIds.delete(currentKit.matched_sys_combo_id);
+        
+        // Select a random replacement and add it to used IDs
+        const replacementKit = availableKits[Math.floor(Math.random() * availableKits.length)];
+        usedIds.add(replacementKit.matched_sys_combo_id);
+        
+        // Replace the current kit in the round
+        roundKits[currentIndex] = replacementKit;
+        
+        // Reload with the new image
+        console.log('Loading replacement image:', replacementKit.url);
+        loadImage();
+      } else {
+        // No replacement available, skip to next image
+        console.warn('No replacement images available');
+        imgEl.alt = "No replacement image available";
+        if (currentIndex < roundKits.length - 1) {
+          setTimeout(() => nextImage(), 1000);
+        } else {
+          setTimeout(() => endRound(), 1000);
+        }
+      }
+    }
   };
   
   imgEl.src = currentKit.url;
@@ -180,16 +298,22 @@ function revealAnswer() {
 
   if (systemEntry) {
     const answers = [systemEntry.Name_1, systemEntry.Name_2, systemEntry.Name_3, systemEntry.Name_4, systemEntry.Name_5]
-      .filter(name => name && name.trim() !== "");
+      .filter(name => name && name.trim() !== "")
+      .map(name => fixCharacterEncoding(name)); // Fix character encoding
 
-    let html = `<div>Possible correct answers:</div><div style="margin-top:8px;">`;
+    let html = `<div style="margin-top:8px;">`;
     answers.forEach(answer => {
       html += `<span class="result-answer-block">${answer}</span>`;
     });
     html += `</div>`;
     
+    // Add the system description from the matched kit data
+    if (currentKit.system && currentKit.system.trim() !== "") {
+      html += `<div style="margin-top:12px;color:var(--muted);font-style:italic;font-size:0.95rem;">${fixCharacterEncoding(currentKit.system)}</div>`;
+    }
+    
     if (systemEntry.Link && systemEntry.Link.trim() !== "") {
-      html += `<div style="margin-top:12px;">Learn more: <a href="${systemEntry.Link}" target="_blank" class="result-link">${systemEntry.Link}</a></div>`;
+      html += `<div style="margin-top:12px;line-height:1.5;max-width:100%;overflow:hidden;">Learn more: <a href="${systemEntry.Link}" target="_blank" class="result-link">${systemEntry.Link}</a></div>`;
     }
 
     document.getElementById("result").innerHTML = html;
@@ -216,9 +340,7 @@ function nextImage() {
 function endRound() {
   // Reset zoom at end of round so buttons aren't covered
   const imgEl = document.getElementById("kitImage");
-  if (typeof imgEl.resetZoom === 'function') {
-    imgEl.resetZoom();
-  }
+  imgEl.resetZoom();
   
   // Only update result text if there's no answer currently displayed
   const resultEl = document.getElementById("result");
@@ -355,12 +477,14 @@ function startTimer(seconds) {
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
+      
+      // Reset zoom when timer expires
+      const imgEl = document.getElementById("kitImage");
+      imgEl.resetZoom();
+      
       // auto reveal and allow next
       revealAnswer();
-      // Check if this was the last image - if so, end the round
-      if (currentIndex >= roundKits.length - 1) {
-        endRound();
-      }
+      // revealAnswer() already handles endRound() for the last image
     }
   }, 1000);
 }

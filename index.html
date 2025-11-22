@@ -31,6 +31,13 @@
           <input type="number" id="roundSizeInput" class="round-size-input" min="1" max="50" value="10" placeholder="10">
         </div>
       </div>
+      <div class="setting-group">
+        <label for="gameModeSelect" class="setting-label">Game Mode:</label>
+        <select id="gameModeSelect" class="game-mode-select">
+          <option value="flashcard">Flashcard Mode (Reveal button)</option>
+          <option value="typing">Typing Mode (Type your guess)</option>
+        </select>
+      </div>
       <div class="settings-buttons">
         <button id="saveSettingsBtn" class="btn">Save Settings</button>
         <button id="cancelSettingsBtn" class="btn secondary">Cancel</button>
@@ -64,8 +71,18 @@
               <div id="loadingOverlay" class="loading-overlay">
                 <div class="loading-text">Loading...</div>
               </div>
+              <div id="stampOverlay" class="stamp-overlay" style="display:none;"></div>
             </div>
             <div id="timer" class="timer" aria-hidden="true">20</div>
+            
+            <div class="guess-input-wrapper" style="display:none;">
+              <input type="text" id="guessInput" class="guess-input" placeholder="Type your guess..." autocomplete="off">
+              <button id="submitGuessBtn" class="submit-btn-inline" title="Submit">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+              </button>
+            </div>
 
             <div id="result" class="result"></div>
 
